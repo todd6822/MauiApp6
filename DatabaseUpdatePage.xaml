@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiApp6.DatabaseUpdatePage"
+             Title="DatabaseUpdatePage">
+    <VerticalStackLayout Padding="12" Spacing="12">
+
+        <Button 
+            Text="Back to Main Menu" 
+            Clicked="ReturnToMainPage"
+            HorizontalOptions="Start"/>
+        <HorizontalStackLayout Spacing="8">
+            <Button
+                Text="Open Inventory"
+                TextColor="White"
+                Clicked="OpenInventoryOnClick"/>
+            <Button
+                Text="Open Event"
+                TextColor="White"
+                Clicked="OpenEventOnClick"/>   
+           <Button
+                Text="Open Sales"
+                TextColor="White"
+                Clicked="OpenSalesOnClick"/>
+        </HorizontalStackLayout>
+
+        <VerticalStackLayout x:Name="InventorySection" IsVisible="True" Spacing="4">
+            <Label Text="Inventory" FontSize="18" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding ItemsInInventory}"
+                            EmptyView="No inventory items found.">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border>
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="0,45,0,0"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout>
+                                
+                                <Label Text="{Binding BookTitle}" FontAttributes="Bold" />
+                                <Label Text="{Binding Cost, StringFormat='Cost: ${0:F2}'}" />
+                                <Label Text="{Binding InStock, StringFormat='In Stock: {0}'}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+        <!-- EVENT RESULTS -->
+        <VerticalStackLayout x:Name="EventSection" IsVisible="False" Spacing="4">
+            <Label Text="Events" FontSize="18" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding Events}"
+                            EmptyView="No events found.">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border>
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="0,45,0,0"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout>
+                                
+                                <Label Text="{Binding EventName }" FontAttributes="Bold" />
+                                <Label Text="{Binding EventDate, StringFormat='EventDate: ${0:F2}'}" />
+                                <Label Text="{Binding EventId, StringFormat='EventId: {0}'}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+        <!-- SALES RESULTS -->
+        <VerticalStackLayout x:Name="SalesSection" IsVisible="False" Spacing="4">
+            <Label Text="Sales" FontSize="18" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding Sales}"
+                            EmptyView="No sales found.">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border>
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="0,45,0,0"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout>
+                                
+                                <Label Text="{Binding BookTitle}" FontAttributes="Bold" />
+                                <Label Text="{Binding Cost, StringFormat='Cost: ${0:F2}'}" />
+                                <Label Text="{Binding InStock, StringFormat='In Stock: {0}'}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+
+
+        </VerticalStackLayout>
+
+    </VerticalStackLayout>
+</ContentPage>

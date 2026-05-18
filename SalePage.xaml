@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiApp6.SalePage"
+             Title="Sale">
+    <Grid>
+
+        <!-- Main layout: 3 rows, 2 columns -->
+        <Grid RowDefinitions="Auto,*,Auto"
+              ColumnDefinitions="Auto,*"
+              Padding="12"
+              RowSpacing="8"
+              ColumnSpacing="12">
+
+            <!-- TOP LEFT: Main Menu button -->
+            <Button Grid.Row="0" Grid.Column="0"
+                    Text="Main Menu"
+                    Clicked="OnMainMenuClicked"
+                    VerticalOptions="Center"/>
+
+            <!-- TOP RIGHT: Select the Event picker -->
+            <HorizontalStackLayout Grid.Row="0" Grid.Column="1"
+                                   HorizontalOptions="End"
+                                   VerticalOptions="Center"
+                                   Spacing="8">
+                <Label Text="Select the Event:" VerticalOptions="Center"/>
+                <Picker x:Name="EventPicker"
+                        ItemsSource="{Binding Events}"
+                        ItemDisplayBinding="{Binding EventName}"
+                        SelectedIndexChanged="OnEventSelected"
+                        MinimumWidthRequest="220"
+                        Title="-- Choose Event --"/>
+            </HorizontalStackLayout>
+
+            <!-- MIDDLE LEFT: Books dropdown -->
+            <VerticalStackLayout Grid.Row="1" Grid.Column="0"
+                                 VerticalOptions="Center"
+                                 Spacing="6">
+                <Label Text="Books" FontAttributes="Bold" FontSize="16"/>
+                <Picker x:Name="BooksPicker"
+                        ItemsSource="{Binding InventoryItems}"
+                        ItemDisplayBinding="{Binding BookTitle}"
+                        SelectedIndexChanged="OnBookSelected"
+                        MinimumWidthRequest="180"
+                        Title="-- Select Book --"/>
+            </VerticalStackLayout>
+
+            <!-- MIDDLE RIGHT: Cart table -->
+            <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="4">
+                <Label Text="Cart" FontSize="18" FontAttributes="Bold"/>
+
+                <!-- Cart header row -->
+                <Grid ColumnDefinitions="2*,*,*,*,*"
+                      BackgroundColor="{AppThemeBinding Light=#DDDDDD, Dark=#444444}">
+                    <Label Grid.Column="0" Text="Book Title"       FontAttributes="Bold" Padding="6,4"/>
+                    <Label Grid.Column="1" Text="Inventory #"      FontAttributes="Bold" Padding="6,4"/>
+                    <Label Grid.Column="2" Text="Cost"             FontAttributes="Bold" Padding="6,4"/>
+                    <Label Grid.Column="3" Text="Tax"              FontAttributes="Bold" Padding="6,4"/>
+                    <Label Grid.Column="4" Text="Total"            FontAttributes="Bold" Padding="6,4"/>
+                </Grid>
+
+                <!-- Cart rows (tap any row to remove it) -->
+                <CollectionView x:Name="CartView"
+                                ItemsSource="{Binding CartItems}"
+                                SelectionMode="Single"
+                                SelectionChanged="OnCartItemSelected"
+                                EmptyView="Cart is empty — select a book to add items."
+                                HeightRequest="220">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="2*,*,*,*,*">
+                                <Label Grid.Column="0" Text="{Binding BookTitle}"                          Padding="6,4"/>
+                                <Label Grid.Column="1" Text="{Binding InventoryNumber}"                    Padding="6,4"/>
+                                <Label Grid.Column="2" Text="{Binding Cost,  StringFormat='${0:F2}'}"      Padding="6,4"/>
+                                <Label Grid.Column="3" Text="{Binding Tax,   StringFormat='${0:F2}'}"      Padding="6,4"/>
+                                <Label Grid.Column="4" Text="{Binding Total, StringFormat='${0:F2}'}"      Padding="6,4"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+
+            <!-- BOTTOM LEFT: Total / Sale / Cancel buttons -->
+            <VerticalStackLayout Grid.Row="2" Grid.Column="0"
+                                 VerticalOptions="Start"
+                                 Spacing="6">
+                <Button Text="Total"  Clicked="OnTotalClicked"  HorizontalOptions="Fill"/>
+                <Button Text="Sale"   Clicked="OnSaleClicked"   HorizontalOptions="Fill"/>
+                <Button Text="Cancel" Clicked="OnCancelClicked" HorizontalOptions="Fill"/>
+            </VerticalStackLayout>
+
+            <!-- BOTTOM RIGHT: This Sale summary table -->
+            <VerticalStackLayout Grid.Row="2" Grid.Column="1" Spacing="4">
+                <Label Text="This Sale" FontSize="18" FontAttributes="Bold"/>
+
+                <!-- This Sale header row -->
+                <Grid ColumnDefinitions="*,*,*"
+                      BackgroundColor="{AppThemeBinding Light=#DDDDDD, Dark=#444444}">
+                    <Label Grid.Column="0" Text="Net Cost"   FontAttributes="Bold" Padding="6,4"/>
+                    <Label Grid.Column="1" Text="Total Tax"  FontAttributes="Bold" Padding="6,4"/>
+                    <Label Grid.Column="2" Text="Sale Total" FontAttributes="Bold" Padding="6,4"/>
+                </Grid>
+
+                <CollectionView ItemsSource="{Binding SaleSummaryItems}"
+                                EmptyView="Press Total to calculate.">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,*,*">
+                                <Label Grid.Column="0" Text="{Binding NetCost,   StringFormat='${0:F2}'}" Padding="6,4"/>
+                                <Label Grid.Column="1" Text="{Binding TotalTax,  StringFormat='${0:F2}'}" Padding="6,4"/>
+                                <Label Grid.Column="2" Text="{Binding SaleTotal, StringFormat='${0:F2}'}" Padding="6,4"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+
+        </Grid>
+
+        <!-- POPUP OVERLAY: shown when a book is selected from the Books picker -->
+        <Grid x:Name="PopupOverlay" IsVisible="False" BackgroundColor="#AA000000">
+            <Frame HorizontalOptions="Center" VerticalOptions="Center"
+                   Padding="24" CornerRadius="10" MinimumWidthRequest="320">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Add to Cart" FontSize="18" FontAttributes="Bold"/>
+                    <Label x:Name="PopupBookLabel" FontAttributes="Italic" FontSize="14"/>
+
+                    <Label Text="How Many?"/>
+                    <Entry x:Name="QuantityEntry"
+                           Text="1"
+                           Keyboard="Numeric"
+                           MaxLength="4"
+                           HorizontalOptions="Start"
+                           WidthRequest="100"/>
+
+                    <Label Text="Tax?"/>
+                    <Picker x:Name="TaxPicker" Title="-- Select --" HorizontalOptions="Start" WidthRequest="150">
+                        <Picker.Items>
+                            <x:String>Yes</x:String>
+                            <x:String>No</x:String>
+                        </Picker.Items>
+                    </Picker>
+
+                    <Button Text="Enter"
+                            Clicked="OnEnterClicked"
+                            HorizontalOptions="Start"/>
+
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
+
+    </Grid>
+</ContentPage>
