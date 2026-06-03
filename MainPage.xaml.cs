@@ -33,8 +33,12 @@ namespace MauiApp6
 
         public async void OnNextPageClicked(object? sender, EventArgs e)
         {
-
            await Navigation.PushAsync(new DatabaseUpdatePage(_dbService));
+        }
+
+        public async void OnSalePageClicked(object? sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new SalePage(_dbService));
         }
 
         /* private void OnCounterClicked(object? sender, EventArgs e)

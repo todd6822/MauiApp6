@@ -15,7 +15,7 @@
 
 
             <Button
-                Text="Go to the next page"
+                Text="Update Database"
                 Grid.Row="0" Grid.Column="0" HorizontalOptions="Start" Margin="30" Padding="30"
                 Clicked="OnNextPageClicked"/>
             <Button
@@ -23,7 +23,7 @@
                 Grid.Row="1" Grid.Column="1" HorizontalOptions="Center" Margin="30" Padding="30"
                 Clicked="OnSalePageClicked"/>
              <Button
-                Text="Future Use"
+                Text="Reports"
                 Grid.Row="2" Grid.Column="2" HorizontalOptions="End" Margin="30" Padding="30"
                 Clicked="OnNextPageClicked"/>
             <!--<Image

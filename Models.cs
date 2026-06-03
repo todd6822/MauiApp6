@@ -45,7 +45,7 @@ namespace DBService
 
 
         [SQLite.Column("EventName")]
-        public string EventName { get; set; }
+        public string? EventName { get; set; }
 
         [SQLite.Column("EventDate")]
         public DateTime EventDate { get; set; }
@@ -65,7 +65,7 @@ namespace DBService
         public int InventoryId { get; set; }
 
         [SQLite.Column("BookTitle")]
-        public string BookTitle { get; set; }
+        public string? BookTitle { get; set; }
 
         [SQLite.Column("Cost")]
         public double Cost { get; set; }
@@ -94,8 +94,10 @@ namespace DBService
         public int Quantity { get; set; }
 
         [SQLite.Column("SalePrice")]
-
         public float SalePrice { get; set; }
+
+        [SQLite.Column("IsTaxed")]
+        public bool IsTaxed { get; set; }
 
 
 

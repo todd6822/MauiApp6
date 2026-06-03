@@ -5,7 +5,7 @@ namespace MauiApp6;
 
 public class CartItem
 {
-    public string BookTitle { get; set; }
+    public string? BookTitle { get; set; }
     public int InventoryNumber { get; set; }
     public double Cost { get; set; }
     public double Tax { get; set; }
@@ -30,7 +30,7 @@ public partial class SalePage : ContentPage
     public int ItemQuantity { get; set; } = 1;
     public bool Taxed { get; set; }
 
-    private Inventory _selectedInventoryItem;
+    private Inventory? _selectedInventoryItem;
 
     public ObservableCollection<Event> Events { get; set; } = new();
     public ObservableCollection<Inventory> InventoryItems { get; set; } = new();
@@ -57,6 +57,7 @@ public partial class SalePage : ContentPage
         Events.Clear();
         foreach (var ev in events)
             Events.Add(ev);
+        Events.Add(new Event { EventId = -1, EventName = "+ New Event" });
     }
 
     private async Task LoadInventory()
@@ -67,16 +68,22 @@ public partial class SalePage : ContentPage
             InventoryItems.Add(item);
     }
 
-    private void OnEventSelected(object sender, EventArgs e)
+    private async void OnEventSelected(object? sender, EventArgs e)
     {
         if (EventPicker.SelectedItem is Event selectedEvent)
         {
+            if (selectedEvent.EventId == -1)
+            {
+                EventPicker.SelectedIndex = -1;
+                await Navigation.PushAsync(new DatabaseUpdatePage(_dbService, openEventOnLoad: true));
+                return;
+            }
             CurrentEventId = selectedEvent.EventId;
             SalesTax = (float)selectedEvent.EventTax;
         }
     }
 
-    private void OnBookSelected(object sender, EventArgs e)
+    private void OnBookSelected(object? sender, EventArgs e)
     {
         if (BooksPicker.SelectedItem is Inventory selectedBook)
         {
@@ -88,12 +95,13 @@ public partial class SalePage : ContentPage
         }
     }
 
-    private void OnEnterClicked(object sender, EventArgs e)
+    private void OnEnterClicked(object? sender, EventArgs e)
     {
         if (_selectedInventoryItem == null) return;
 
-        if (!int.TryParse(QuantityEntry.Text, out ItemQuantity) || ItemQuantity < 1)
-            ItemQuantity = 1;
+        if (!int.TryParse(QuantityEntry.Text, out int parsedQuantity) || parsedQuantity < 1)
+            parsedQuantity = 1;
+        ItemQuantity = parsedQuantity;
 
         Taxed = TaxPicker.SelectedItem?.ToString() == "Yes";
 
@@ -117,7 +125,7 @@ public partial class SalePage : ContentPage
         _selectedInventoryItem = null;
     }
 
-    private void OnCartItemSelected(object sender, SelectionChangedEventArgs e)
+    private void OnCartItemSelected(object? sender, SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.FirstOrDefault() is CartItem selected)
         {
@@ -126,7 +134,7 @@ public partial class SalePage : ContentPage
         }
     }
 
-    private void OnTotalClicked(object sender, EventArgs e)
+    private void OnTotalClicked(object? sender, EventArgs e)
     {
         double netCost = CartItems.Sum(x => x.Cost);
         double totalTax = CartItems.Sum(x => x.Tax);
@@ -141,7 +149,7 @@ public partial class SalePage : ContentPage
         });
     }
 
-    private async void OnSaleClicked(object sender, EventArgs e)
+    private async void OnSaleClicked(object? sender, EventArgs e)
     {
         if (CartItems.Count == 0)
         {
@@ -153,6 +161,25 @@ public partial class SalePage : ContentPage
         {
             await DisplayAlertAsync("No Event Selected", "Please select an event before recording a sale.", "OK");
             return;
+        }
+
+        // Validate stock before writing anything
+        var inventoryUpdates = new List<(DBService.Inventory Item, int SellQty)>();
+        foreach (var cartItem in CartItems)
+        {
+            var inv = await _dbService.GetInventoryById(cartItem.InventoryId);
+            if (inv == null)
+            {
+                await DisplayAlertAsync("Error", $"'{cartItem.BookTitle}' was not found in inventory.", "OK");
+                return;
+            }
+            if (inv.InStock - cartItem.Quantity < 0)
+            {
+                await DisplayAlertAsync("Insufficient Stock",
+                    $"Cannot sell {cartItem.Quantity} of '{cartItem.BookTitle}'. Only {inv.InStock} in stock.", "OK");
+                return;
+            }
+            inventoryUpdates.Add((inv, cartItem.Quantity));
         }
 
         double netCost = CartItems.Sum(x => x.Cost);
@@ -176,8 +203,15 @@ public partial class SalePage : ContentPage
                 SaleId = sale.SaleId,
                 BookId = item.InventoryId,
                 Quantity = item.Quantity,
-                SalePrice = (float)item.Total
+                SalePrice = (float)item.Total,
+                IsTaxed = item.Tax > 0
             });
+        }
+
+        foreach (var (inv, qty) in inventoryUpdates)
+        {
+            inv.InStock -= qty;
+            await _dbService.UpdateInventoryItem(inv);
         }
 
         CartItems.Clear();
@@ -185,13 +219,13 @@ public partial class SalePage : ContentPage
         await DisplayAlertAsync("Sale Complete", "Sale has been recorded successfully.", "OK");
     }
 
-    private void OnCancelClicked(object sender, EventArgs e)
+    private void OnCancelClicked(object? sender, EventArgs e)
     {
         CartItems.Clear();
         SaleSummaryItems.Clear();
     }
 
-    private async void OnMainMenuClicked(object sender, EventArgs e)
+    private async void OnMainMenuClicked(object? sender, EventArgs e)
     {
         await Navigation.PopAsync();
     }

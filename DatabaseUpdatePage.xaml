@@ -3,97 +3,482 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiApp6.DatabaseUpdatePage"
              Title="DatabaseUpdatePage">
-    <VerticalStackLayout Padding="12" Spacing="12">
+    <Grid ColumnDefinitions="*,280">
 
-        <Button 
-            Text="Back to Main Menu" 
-            Clicked="ReturnToMainPage"
-            HorizontalOptions="Start"/>
-        <HorizontalStackLayout Spacing="8">
-            <Button
-                Text="Open Inventory"
-                TextColor="White"
-                Clicked="OpenInventoryOnClick"/>
-            <Button
-                Text="Open Event"
-                TextColor="White"
-                Clicked="OpenEventOnClick"/>   
-           <Button
-                Text="Open Sales"
-                TextColor="White"
-                Clicked="OpenSalesOnClick"/>
-        </HorizontalStackLayout>
+        <!-- ═══ LEFT COLUMN: navigation and table sections ═══ -->
+        <VerticalStackLayout Grid.Column="0" Padding="12" Spacing="12">
 
-        <VerticalStackLayout x:Name="InventorySection" IsVisible="True" Spacing="4">
-            <Label Text="Inventory" FontSize="18" FontAttributes="Bold" />
-            <CollectionView ItemsSource="{Binding ItemsInInventory}"
-                            EmptyView="No inventory items found.">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border>
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="0,45,0,0"/>
-                            </Border.StrokeShape>
-                            <VerticalStackLayout>
-                                
-                                <Label Text="{Binding BookTitle}" FontAttributes="Bold" />
-                                <Label Text="{Binding Cost, StringFormat='Cost: ${0:F2}'}" />
-                                <Label Text="{Binding InStock, StringFormat='In Stock: {0}'}" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+            <Button Text="Go Back"
+                    Clicked="ReturnToMainPage"
+                    HorizontalOptions="Start"/>
+
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Open Inventory" TextColor="White" Clicked="OpenInventoryOnClick"/>
+                <Button Text="Open Event"     TextColor="White" Clicked="OpenEventOnClick"/>
+                <Button Text="Open Sales"     TextColor="White" Clicked="OpenSalesOnClick"/>
+            </HorizontalStackLayout>
+
+            <!-- INVENTORY RESULTS -->
+            <VerticalStackLayout x:Name="InventorySection" IsVisible="True" Spacing="4">
+                <Label Text="Inventory" FontSize="18" FontAttributes="Bold" />
+                <CollectionView x:Name="InventoryCollectionView"
+                                ItemsSource="{Binding ItemsInInventory}"
+                                EmptyView="No inventory items found."
+                                HeightRequest="350"
+                                SelectionMode="None"
+                                SelectionChanged="OnInventoryItemSelected">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border>
+                                <Border.StrokeShape><RoundRectangle CornerRadius="0,45,0,0"/></Border.StrokeShape>
+                                <VerticalStackLayout Padding="8">
+                                    <Label Text="{Binding BookTitle}" FontAttributes="Bold" />
+                                    <Label Text="{Binding Cost, StringFormat='Cost: ${0:F2}'}" />
+                                    <Label Text="{Binding InStock, StringFormat='In Stock: {0}'}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+
+            <!-- EVENT RESULTS -->
+            <VerticalStackLayout x:Name="EventSection" IsVisible="False" Spacing="4">
+                <Label Text="Events" FontSize="18" FontAttributes="Bold" />
+                <CollectionView x:Name="EventCollectionView"
+                                ItemsSource="{Binding Events}"
+                                EmptyView="No events found."
+                                HeightRequest="350"
+                                SelectionMode="None"
+                                SelectionChanged="OnEventItemSelected">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border>
+                                <Border.StrokeShape><RoundRectangle CornerRadius="0,45,0,0"/></Border.StrokeShape>
+                                <VerticalStackLayout Padding="8">
+                                    <Label Text="{Binding EventName}" FontAttributes="Bold" />
+                                    <Label Text="{Binding EventDate, StringFormat='Date: {0:d}'}" />
+                                    <Label Text="{Binding EventTax, StringFormat='Tax: {0:P2}'}" />
+                                    <Label Text="{Binding EventId, StringFormat='Event ID: {0}'}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+
+            <!-- SALES RESULTS -->
+            <VerticalStackLayout x:Name="SalesSection" IsVisible="False" Spacing="8">
+                <Label Text="Sales" FontSize="18" FontAttributes="Bold" />
+                <Picker x:Name="EventFilterPicker"
+                        Title="Filter by Event"
+                        ItemsSource="{Binding FilterEvents}"
+                        ItemDisplayBinding="{Binding EventName}"
+                        SelectedIndexChanged="OnEventFilterChanged"
+                        HorizontalOptions="Start"
+                        WidthRequest="300"/>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                        <Label Text="Sales" FontAttributes="Bold"/>
+                        <CollectionView x:Name="SalesCollectionView"
+                                        ItemsSource="{Binding Sales}"
+                                        EmptyView="No sales found."
+                                        HeightRequest="350"
+                                        SelectionMode="Single"
+                                        SelectionChanged="OnSaleSelected">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="0,45,0,0"/></Border.StrokeShape>
+                                        <VerticalStackLayout Padding="8">
+                                            <Label Text="{Binding SaleId, StringFormat='Sale #{0}'}" FontAttributes="Bold" />
+                                            <Label Text="{Binding SalePrice, StringFormat='Price: ${0:F2}'}" />
+                                            <Label Text="{Binding Tax, StringFormat='Tax: ${0:F2}'}" />
+                                            <Label Text="{Binding Total, StringFormat='Total: ${0:F2}'}" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <Label Text="Sale Items" FontAttributes="Bold"/>
+                        <CollectionView x:Name="SaleItemsCollectionView"
+                                        ItemsSource="{Binding SelectedSaleItems}"
+                                        EmptyView="Select a sale to view its items."
+                                        HeightRequest="350"
+                                        SelectionMode="None"
+                                        SelectionChanged="OnSaleItemSelectionChanged">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border>
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="0,45,0,0"/></Border.StrokeShape>
+                                        <VerticalStackLayout Padding="8">
+                                            <Label Text="{Binding BookTitle}" FontAttributes="Bold" />
+                                            <Label Text="{Binding Quantity, StringFormat='Qty: {0}'}" />
+                                            <Label Text="{Binding SalePrice, StringFormat='Price: ${0:F2}'}" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
+
         </VerticalStackLayout>
 
-        <!-- EVENT RESULTS -->
-        <VerticalStackLayout x:Name="EventSection" IsVisible="False" Spacing="4">
-            <Label Text="Events" FontSize="18" FontAttributes="Bold" />
-            <CollectionView ItemsSource="{Binding Events}"
-                            EmptyView="No events found.">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border>
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="0,45,0,0"/>
-                            </Border.StrokeShape>
-                            <VerticalStackLayout>
-                                
-                                <Label Text="{Binding EventName }" FontAttributes="Bold" />
-                                <Label Text="{Binding EventDate, StringFormat='EventDate: ${0:F2}'}" />
-                                <Label Text="{Binding EventId, StringFormat='EventId: {0}'}" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+        <!-- ═══ RIGHT COLUMN: action buttons and popup panels ═══ -->
+        <VerticalStackLayout Grid.Column="1" Padding="12" Spacing="10" VerticalOptions="Start">
+
+            <!-- Back to inventory delete (shown while editing an affected sale) -->
+            <Border x:Name="BackToDeleteInventoryPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Editing affected sale." FontAttributes="Italic"/>
+                    <Button Text="Back to Delete Inventory" Clicked="OnBackToDeleteInventoryClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── INVENTORY panels ── -->
+            <VerticalStackLayout x:Name="InventoryActions" IsVisible="False" Spacing="8">
+                <Button Text="Edit Item"   Clicked="OnEditItemClicked"/>
+                <Button Text="Delete Item" Clicked="OnDeleteItemClicked"/>
+                <Button Text="New Item"    Clicked="OnNewItemClicked"/>
+            </VerticalStackLayout>
+
+            <Border x:Name="EditPromptPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the item you want to Edit"/>
+                    <Button Text="Cancel" Clicked="OnEditCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="EditFormPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Edit Item" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Item Name"/>
+                    <Entry x:Name="EditBookTitleEntry"/>
+                    <Label Text="Cost"/>
+                    <Entry x:Name="EditCostEntry" Keyboard="Numeric"/>
+                    <Label Text="Number in Stock"/>
+                    <Entry x:Name="EditInStockEntry" Keyboard="Numeric"/>
+                    <Label x:Name="EditErrorLabel" TextColor="Red" IsVisible="False"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Save"   Clicked="OnEditSaveClicked"/>
+                        <Button Text="Cancel" Clicked="OnEditFormCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="DeletePromptPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the item you want to delete"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="DeleteConfirmPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Are you sure?" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Yes" Clicked="OnDeleteYesClicked"/>
+                        <Button Text="No"  Clicked="OnDeleteNoClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Affected sales count confirm for inventory delete -->
+            <Border x:Name="AffectedSalesConfirmPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label x:Name="AffectedSalesCountLabel" FontAttributes="Bold"/>
+                    <Label Text="Correct Affected Sales?"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Yes"    Clicked="OnAffectedSalesYesClicked"/>
+                        <Button Text="Cancel" Clicked="OnAffectedSalesCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="NewItemPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="New Item" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Item Name"/>
+                    <Entry x:Name="NewBookTitleEntry"/>
+                    <Label Text="Cost"/>
+                    <Entry x:Name="NewCostEntry" Keyboard="Numeric"/>
+                    <Label Text="Number in Stock"/>
+                    <Entry x:Name="NewInStockEntry" Keyboard="Numeric"/>
+                    <Label x:Name="NewItemErrorLabel" TextColor="Red" IsVisible="False"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Enter"  Clicked="OnNewItemEnterClicked"/>
+                        <Button Text="Cancel" Clicked="OnNewItemCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── EVENT panels ── -->
+            <VerticalStackLayout x:Name="EventActions" IsVisible="False" Spacing="8">
+                <Button Text="Edit Event"   Clicked="OnEditEventClicked"/>
+                <Button Text="Delete Event" Clicked="OnDeleteEventClicked"/>
+                <Button Text="New Event"    Clicked="OnNewEventClicked"/>
+            </VerticalStackLayout>
+
+            <Border x:Name="EditEventPromptPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the event you want to Edit"/>
+                    <Button Text="Cancel" Clicked="OnEditEventCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="EditEventFormPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Edit Event" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Event Name"/>
+                    <Entry x:Name="EditEventNameEntry"/>
+                    <Label Text="Event Date"/>
+                    <DatePicker x:Name="EditEventDatePicker"/>
+                    <Label Text="Tax Rate (e.g. 0.08 for 8%)"/>
+                    <Entry x:Name="EditEventTaxEntry" Keyboard="Numeric"/>
+                    <Label x:Name="EditEventErrorLabel" TextColor="Red" IsVisible="False"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Save"   Clicked="OnEditEventSaveClicked"/>
+                        <Button Text="Cancel" Clicked="OnEditEventFormCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="DeleteEventPromptPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the event you want to delete"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="DeleteEventConfirmPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Are you sure?" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Yes" Clicked="OnDeleteEventYesClicked"/>
+                        <Button Text="No"  Clicked="OnDeleteEventNoClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="NewEventPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="New Event" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Event Name"/>
+                    <Entry x:Name="NewEventNameEntry"/>
+                    <Label Text="Event Date"/>
+                    <DatePicker x:Name="NewEventDatePicker"/>
+                    <Label Text="Tax Rate (e.g. 0.08 for 8%)"/>
+                    <Entry x:Name="NewEventTaxEntry" Keyboard="Numeric"/>
+                    <Label x:Name="NewEventErrorLabel" TextColor="Red" IsVisible="False"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Enter"  Clicked="OnNewEventEnterClicked"/>
+                        <Button Text="Cancel" Clicked="OnNewEventCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ── SALE panels ── -->
+            <VerticalStackLayout x:Name="SaleActions" IsVisible="False" Spacing="8">
+                <Button Text="Edit Sale"   Clicked="OnEditSaleClicked"/>
+                <Button Text="Delete Sale" Clicked="OnDeleteSaleClicked"/>
+            </VerticalStackLayout>
+
+            <!-- Edit Sale: step 1 — click a sale -->
+            <Border x:Name="EditSalePromptPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the sale you want to edit"/>
+                    <Button Text="Cancel" Clicked="OnEditSaleCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Edit Sale: step 2 — choose whole sale or individual item -->
+            <Border x:Name="EditSaleChoosePanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="What would you like to edit?" FontAttributes="Bold"/>
+                    <Button Text="Edit Whole Sale"   Clicked="OnEditWholeSaleClicked"/>
+                    <Button Text="Edit a Sale Item"  Clicked="OnEditSaleItemPromptClicked"/>
+                    <Button Text="Add a Sale Item"   Clicked="OnAddSaleItemClicked"/>
+                    <Button Text="Delete Sale Item"  Clicked="OnEditDeleteSaleItemClicked"/>
+                    <Button x:Name="DeleteSaleFromEditButton"
+                            Text="Delete Sale"
+                            IsVisible="False"
+                            Clicked="OnDeleteSaleFromEditClicked"/>
+                    <Button Text="Cancel"            Clicked="OnEditSaleChooseCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Edit Sale: step 3a — whole sale form -->
+            <Border x:Name="EditSaleFormPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Edit Sale" FontAttributes="Bold" FontSize="16"/>
+                    <Label x:Name="EditSaleIdLabel"/>
+                    <Label Text="Sale Price"/>
+                    <Entry x:Name="EditSalePriceEntry" Keyboard="Numeric"/>
+                    <Label Text="Tax"/>
+                    <Entry x:Name="EditSaleTaxEntry" Keyboard="Numeric"/>
+                    <Label Text="Total"/>
+                    <Entry x:Name="EditSaleTotalEntry" Keyboard="Numeric"/>
+                    <Label x:Name="EditSaleErrorLabel" TextColor="Red" IsVisible="False"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Save"   Clicked="OnEditSaleSaveClicked"/>
+                        <Button Text="Cancel" Clicked="OnEditSaleFormCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Edit Sale: step 3b — click an item in the right table -->
+            <Border x:Name="EditSaleItemPromptPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the item in the Sale Items table that you want to edit"/>
+                    <Button Text="Cancel" Clicked="OnEditSaleItemPromptCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Edit Sale: step 4 — item edit form -->
+            <Border x:Name="EditSaleItemFormPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Edit Sale Item" FontAttributes="Bold" FontSize="16"/>
+                    <Label x:Name="EditSaleItemBookLabel" FontAttributes="Bold"/>
+                    <Label Text="Quantity"/>
+                    <Entry x:Name="EditSaleItemQuantityEntry" Keyboard="Numeric"/>
+                    <Label Text="Tax?"/>
+                    <Picker x:Name="EditSaleItemTaxPicker" Title="-- Select --"
+                            HorizontalOptions="Start" WidthRequest="150">
+                        <Picker.Items>
+                            <x:String>Yes</x:String>
+                            <x:String>No</x:String>
+                        </Picker.Items>
+                    </Picker>
+                    <Label x:Name="EditSaleItemErrorLabel" TextColor="Red" IsVisible="False"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Save"   Clicked="OnEditSaleItemSaveClicked"/>
+                        <Button Text="Cancel" Clicked="OnEditSaleItemFormCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Edit Sale: step 3c — add new sale item to existing sale -->
+            <Border x:Name="AddSaleItemPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Add Sale Item" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Select Book"/>
+                    <Picker x:Name="AddSaleItemBookPicker"
+                            ItemsSource="{Binding ItemsInInventory}"
+                            ItemDisplayBinding="{Binding BookTitle}"
+                            Title="-- Select Book --"/>
+                    <Label Text="Quantity"/>
+                    <Entry x:Name="AddSaleItemQuantityEntry" Keyboard="Numeric" Text="1"/>
+                    <Label Text="Tax?"/>
+                    <Picker x:Name="AddSaleItemTaxPicker" Title="-- Select --"
+                            HorizontalOptions="Start" WidthRequest="150">
+                        <Picker.Items>
+                            <x:String>Yes</x:String>
+                            <x:String>No</x:String>
+                        </Picker.Items>
+                    </Picker>
+                    <Label x:Name="AddSaleItemErrorLabel" TextColor="Red" IsVisible="False"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Add"    Clicked="OnAddSaleItemSaveClicked"/>
+                        <Button Text="Cancel" Clicked="OnAddSaleItemCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Edit Sale: delete item — select which item -->
+            <Border x:Name="EditDeleteSaleItemSelectPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the sale item you want to delete"/>
+                    <Button Text="Cancel" Clicked="OnEditDeleteSaleItemCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Edit Sale: delete item — confirm -->
+            <Border x:Name="EditDeleteSaleItemConfirmPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label x:Name="EditDeleteSaleItemLabel" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Delete Sale Item" Clicked="OnEditDeleteSaleItemConfirmClicked"/>
+                        <Button Text="Cancel"           Clicked="OnEditDeleteSaleItemCancelClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Delete Sale: step 1 — click a sale -->
+            <Border x:Name="DeleteSalePromptPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the sale you want to delete"/>
+                    <Button Text="Cancel" Clicked="OnDeleteSaleCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Delete Sale: step 2 — choose whole sale or individual item -->
+            <Border x:Name="DeleteSaleChoosePanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="What would you like to delete?" FontAttributes="Bold"/>
+                    <Button Text="Delete Whole Sale"  Clicked="OnDeleteWholeSaleClicked"/>
+                    <Button Text="Delete a Sale Item" Clicked="OnDeleteSaleItemPromptClicked"/>
+                    <Button Text="Cancel"             Clicked="OnDeleteSaleChooseCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Delete Sale: step 3a — confirm whole sale -->
+            <Border x:Name="DeleteSaleConfirmPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Are you sure? This will delete the entire sale and all its items." FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Yes" Clicked="OnDeleteSaleYesClicked"/>
+                        <Button Text="No"  Clicked="OnDeleteSaleNoClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Delete Sale: step 3b — click an item -->
+            <Border x:Name="DeleteSaleItemPromptPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Click on the item in the Sale Items table that you want to delete"/>
+                    <Button Text="Cancel" Clicked="OnDeleteSaleItemPromptCancelClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Delete Sale: step 4 — confirm item -->
+            <Border x:Name="DeleteSaleItemConfirmPanel" IsVisible="False" Padding="14">
+                <Border.StrokeShape><RoundRectangle CornerRadius="8"/></Border.StrokeShape>
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Are you sure?" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Yes" Clicked="OnDeleteSaleItemYesClicked"/>
+                        <Button Text="No"  Clicked="OnDeleteSaleItemNoClicked"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
         </VerticalStackLayout>
 
-        <!-- SALES RESULTS -->
-        <VerticalStackLayout x:Name="SalesSection" IsVisible="False" Spacing="4">
-            <Label Text="Sales" FontSize="18" FontAttributes="Bold" />
-            <CollectionView ItemsSource="{Binding Sales}"
-                            EmptyView="No sales found.">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border>
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="0,45,0,0"/>
-                            </Border.StrokeShape>
-                            <VerticalStackLayout>
-                                
-                                <Label Text="{Binding BookTitle}" FontAttributes="Bold" />
-                                <Label Text="{Binding Cost, StringFormat='Cost: ${0:F2}'}" />
-                                <Label Text="{Binding InStock, StringFormat='In Stock: {0}'}" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-
-
-
-        </VerticalStackLayout>
-
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>

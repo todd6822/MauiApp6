@@ -54,7 +54,7 @@ namespace DBService
 
 
             {
-                string bookName = bookLocation.BookTitle;
+                string? bookName = bookLocation.BookTitle;
                 Console.WriteLine(bookName);
             }
 
@@ -84,6 +84,16 @@ namespace DBService
         public async Task<List<Sale>> GetSales()
         {
             return await _connection.Table<Sale>().ToListAsync();
+        }
+
+        public async Task<List<SaleItem>> GetSaleItemsBySaleId(int saleId)
+        {
+            return await _connection.Table<SaleItem>().Where(x => x.SaleId == saleId).ToListAsync();
+        }
+
+        public async Task<List<SaleItem>> GetSaleItemsByBookId(int bookId)
+        {
+            return await _connection.Table<SaleItem>().Where(x => x.BookId == bookId).ToListAsync();
         }
 
         //public async Task<Create>

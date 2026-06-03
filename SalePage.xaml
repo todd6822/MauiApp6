@@ -119,8 +119,12 @@
 
         <!-- POPUP OVERLAY: shown when a book is selected from the Books picker -->
         <Grid x:Name="PopupOverlay" IsVisible="False" BackgroundColor="#AA000000">
-            <Frame HorizontalOptions="Center" VerticalOptions="Center"
-                   Padding="24" CornerRadius="10" MinimumWidthRequest="320">
+            <Border HorizontalOptions="Center" VerticalOptions="Center"
+                    Padding="24" MinimumWidthRequest="320"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2C2C2C}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10"/>
+                </Border.StrokeShape>
                 <VerticalStackLayout Spacing="12">
 
                     <Label Text="Add to Cart" FontSize="18" FontAttributes="Bold"/>
@@ -147,7 +151,7 @@
                             HorizontalOptions="Start"/>
 
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
         </Grid>
 
     </Grid>
